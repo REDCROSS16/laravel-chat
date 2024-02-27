@@ -1,0 +1,71 @@
+version: "3"
+services:
+    #PHP Service
+    laravel-chat-fpm:
+        build:
+            context: ./
+            dockerfile: dockerfile.fpm
+        container_name: laravel-chat-fpm
+        restart: unless-stopped
+        tty: true
+        environment:
+            PHP_IDE_CONFIG: "serverName=Docker"
+            FORCE_SSL: "false"
+            XDEBUG_CONFIG: "remote_host=host.docker.internal remote_enable=1"
+            APP_ENV: dev
+        working_dir: /var/www/html/
+        extra_hosts:
+            - docker.for.win.localhost:host-gateway
+        ports:
+            - "127.0.0.1:9000:9000"
+        volumes:
+            - ./:/var/www/html/:rw
+            - ./storage:/var/www/html/storage:rw
+            - ./docker/php.ini:/usr/local/etc/php/php.ini:cached
+        networks:
+            - internal
+
+    #Nginx Service
+    laravel-chat-nginx:
+       image: nginx:alpine
+       container_name: laravel-chat-nginx
+       depends_on:
+         - laravel-chat-fpm
+       restart: unless-stopped
+       tty: true
+       ports:
+           - "8080:80"
+       volumes:
+           - ./:/var/www/html
+           - ./storage:/var/www/html/storage:rw
+           - ./nginx/conf.d/:/etc/nginx/conf.d/
+       networks:
+           - internal
+
+    #MySQL Service
+    laravel-chat-db:
+        image: mysql:5.7.37
+        container_name: laravel-chat-db
+        restart: always
+        tty: true
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+          DB_HOST: ${DB_HOST}
+          DB_PORT: ${DB_PORT}
+          DB_DATABASE: ${DB_DATABASE}
+          DB_USERNAME: ${DB_USERNAME}
+          DB_PASSWORD: ${DB_PASSWORD}
+        ports:
+          - "127.0.0.1:3306:3306"
+        volumes:
+            - ./mysql:/var/lib/mysql/
+        networks:
+            - internal
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.220.0/28
