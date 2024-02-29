@@ -52,9 +52,12 @@ services:
         environment:
           DB_HOST: ${DB_HOST}
           DB_PORT: ${DB_PORT}
-          DB_DATABASE: ${DB_DATABASE}
-          DB_USERNAME: ${DB_USERNAME}
-          DB_PASSWORD: ${DB_PASSWORD}
+#          DB_DATABASE: ${DB_DATABASE}
+#          DB_USERNAME: ${DB_USERNAME}
+#          DB_PASSWORD: ${DB_PASSWORD}
+          MYSQL_DATABASE: ${DB_DATABASE}
+          MYSQL_ROOT_PASSWORD: ${DB_USERNAME}
+          MYSQL_PASSWORD: ${DB_PASSWORD}
         ports:
           - "127.0.0.1:3306:3306"
         volumes:
